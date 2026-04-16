@@ -38,12 +38,17 @@
         {% endfor %}
       </ul>
     </div>
-    <div class="card">
-      <div class="eyebrow">MVP waitlist</div>
+    <div class="card" id="contact">
+      <div class="eyebrow">Launch contact</div>
       <h2>{{ brief.cta.title }}</h2>
       <p>{{ brief.cta.body }}</p>
-      <p class="note">{{ brief.cta.demo_note }}</p>
-      <a class="button" href="/#waitlist">Join from the homepage</a>
+      <p class="note">{{ brief.cta.launch_note }}</p>
+      <a class="button" href="{{ site.contact_href }}">{{ brief.cta.button_label }}</a>
+      <p class="note">Direct email: <a class="text-link" href="{{ site.contact_href }}">{{ site.contact_email }}</a></p>
+      {% if site.demo_waitlist_enabled %}
+        <p class="note">{{ brief.cta.demo_note }}</p>
+        <a class="text-link" href="/#contact">Open the local demo form on the homepage</a>
+      {% endif %}
     </div>
   </section>
 {% endblock %}

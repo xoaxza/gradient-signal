@@ -19,14 +19,14 @@ Ignore the hype / What we ignore:
 {% endfor %}
 
 Human pages:
-- / : landing page with thesis, sample signals, and MVP waitlist
+- / : landing page with thesis, sample signals, and a launch-safe email CTA
 - /methodology : editorial filter and sourcing approach
 - /brief/latest : current curated brief
 
 Machine endpoints:
 - /healthz : JSON health check with service brand
 - /api/brief/latest : JSON representation of the latest brief
-- /api/waitlist : POST JSON endpoint for demo-grade waitlist submissions
+- /api/waitlist : POST JSON endpoint for the optional local demo waitlist (409 in launch-email-only mode)
 - /llms.txt : this file
 - /openapi.json : FastAPI schema
 
@@ -40,6 +40,10 @@ Latest brief items:
 - {{ item.headline }} | {{ item.announced_on }} | {{ item.category }}
 {% endfor %}
 
-Demo note:
-- Waitlist submissions are stored in a local JSONL file for MVP demos only.
+Launch contact:
+- {{ site.contact_email }}
 
+{% if site.demo_waitlist_enabled %}Demo note:
+- Local demo waitlist capture is enabled for this environment only.
+
+{% endif %}

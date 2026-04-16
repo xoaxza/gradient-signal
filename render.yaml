@@ -5,3 +5,8 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /healthz
+    envVars:
+      - key: GRADIENT_SIGNAL_CONTACT_EMAIL
+        value: team@scottyshelpers.org
+      - key: GRADIENT_SIGNAL_ENABLE_DEMO_WAITLIST
+        value: "false"

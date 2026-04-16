@@ -1,6 +1,6 @@
 # Gradient Signal
 
-Gradient Signal is an AI-engineer-focused newsletter and launch website built around one editorial promise: cover only the AI changes that materially affect builders. The MVP site ships a strong landing page, an anti-hype methodology page, a curated latest brief, a small JSON API, and a demo-grade waitlist flow.
+Gradient Signal is an AI-engineer-focused newsletter and launch website built around one editorial promise: cover only the AI changes that materially affect builders. The MVP site ships a strong landing page, an anti-hype methodology page, a curated latest brief, a small JSON API, and a launch-safe email CTA. An optional file-backed waitlist remains available for local demos only.
 
 ## Business summary
 
@@ -20,7 +20,18 @@ uvicorn app.main:app --reload
 
 Open `http://127.0.0.1:8000`.
 
-Waitlist submissions are written to `data/waitlist.jsonl` by default. For isolated local testing, override the path with `GRADIENT_SIGNAL_WAITLIST_PATH=/tmp/gradient-signal-waitlist.jsonl`.
+## Configuration
+
+- `GRADIENT_SIGNAL_CONTACT_EMAIL`
+  - Direct-email CTA target.
+  - Defaults to `team@scottyshelpers.org`.
+- `GRADIENT_SIGNAL_ENABLE_DEMO_WAITLIST`
+  - Enables the JSONL-backed waitlist form and POST handling for local demos.
+  - Defaults to `false` so public deploys do not rely on ephemeral disk.
+- `GRADIENT_SIGNAL_WAITLIST_PATH`
+  - Optional override for local demo storage.
+  - Only used when `GRADIENT_SIGNAL_ENABLE_DEMO_WAITLIST=true`.
+  - Example: `/tmp/gradient-signal-waitlist.jsonl`.
 
 ## Test command
 
@@ -40,13 +51,13 @@ pytest -q
 
 - `GET /healthz`
 - `GET /api/brief/latest`
-- `POST /api/waitlist`
+- `POST /api/waitlist` (optional local demo flow, disabled by default)
 - `GET /llms.txt`
 - `GET /openapi.json`
 
 ### Demo form flow
 
-- `POST /waitlist`
+- `POST /waitlist` (optional local demo flow, disabled by default)
 
 ## Render deployment
 
@@ -56,4 +67,4 @@ The repo includes `runtime.txt` for Python 3.12 and `render.yaml` with a simple 
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-The waitlist is intentionally file-backed and demo-grade. A Render deployment should treat that storage as ephemeral unless replaced with durable backing services.
+The launch configuration defaults to direct email intake and keeps the demo waitlist disabled so the public CTA does not depend on Render's ephemeral filesystem.

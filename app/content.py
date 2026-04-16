@@ -95,10 +95,10 @@ LATEST_BRIEF = {
         {
             "slug": "anthropic-managed-agents-advisor",
             "headline": "Anthropic launches Managed Agents beta and the Advisor tool",
-            "announced_on": "2026-04-08/09",
+            "announced_on": "2026-04-09",
             "category": "agents-platform",
             "summary": (
-                "Anthropic expanded its platform with Managed Agents beta and the Advisor tool, positioning more of the long-horizon "
+                "Anthropic expanded its platform across April 8 and 9 with Managed Agents beta and the Advisor tool, positioning more of the long-horizon "
                 "agent runtime and review loop as a hosted service."
             ),
             "why_it_matters": (
@@ -206,9 +206,11 @@ LATEST_BRIEF = {
     "cta": {
         "title": "Get the next brief",
         "body": (
-            "Join the MVP waitlist if you want a disciplined weekly read on capability shifts, platform changes, and the operational consequences."
+            "For launch, the reliable signup path is direct email. Send a short note with your role and what you're tracking if you want the next brief."
         ),
-        "demo_note": "MVP note: submissions are appended to a local JSONL file for demos. No database, no CRM, no production guarantees.",
+        "launch_note": "Live deployments default to direct email so the public CTA does not depend on ephemeral file storage.",
+        "demo_note": "Local demo environments can optionally show a disposable waitlist form, but public launches use direct email.",
+        "button_label": "Email the team",
     },
 }
 

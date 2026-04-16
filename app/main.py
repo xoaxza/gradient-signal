@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import os
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import FastAPI, Form, Request, status
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, ValidationError
@@ -77,13 +79,61 @@ class WaitlistReceipt(BaseModel):
     message: str
 
 
+@dataclass(frozen=True)
+class WaitlistPersistenceResult:
+    persisted: bool
+    storage_mode: str
+    message: str
+
+
 def build_brief_payload() -> dict:
     brief = get_latest_brief()
+    brief["cta"] = {
+        **brief["cta"],
+        "contact_email": contact_email(),
+        "contact_href": contact_href(),
+    }
+    if not demo_waitlist_enabled():
+        brief["cta"].pop("demo_note", None)
     return {
         "brand": BRAND,
         "positioning": POSITIONING,
         **brief,
     }
+
+
+def parse_bool_env(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def demo_waitlist_enabled() -> bool:
+    return parse_bool_env("GRADIENT_SIGNAL_ENABLE_DEMO_WAITLIST", default=False)
+
+
+def contact_email() -> str:
+    email = os.getenv("GRADIENT_SIGNAL_CONTACT_EMAIL", "team@scottyshelpers.org").strip()
+    return email or "team@scottyshelpers.org"
+
+
+def contact_href() -> str:
+    subject = quote("Gradient Signal: send me the next brief")
+    body = quote("Name:\nRole:\nWhat I'm tracking:\n")
+    return f"mailto:{contact_email()}?subject={subject}&body={body}"
+
+
+def build_site_context() -> dict:
+    context = get_site_context()
+    context.update(
+        {
+            "contact_email": contact_email(),
+            "contact_href": contact_href(),
+            "demo_waitlist_enabled": demo_waitlist_enabled(),
+        }
+    )
+    return context
 
 
 def waitlist_path() -> Path:
@@ -93,24 +143,50 @@ def waitlist_path() -> Path:
     return PROJECT_DIR / "data" / "waitlist.jsonl"
 
 
-def persist_waitlist_submission(submission: WaitlistSubmission, source: str) -> None:
-    destination = waitlist_path()
-    destination.parent.mkdir(parents=True, exist_ok=True)
+def persist_waitlist_submission(
+    submission: WaitlistSubmission, source: str
+) -> WaitlistPersistenceResult:
+    if not demo_waitlist_enabled():
+        return WaitlistPersistenceResult(
+            persisted=False,
+            storage_mode="launch-email-only",
+            message=(
+                f"Waitlist capture is disabled on this deployment. Email {contact_email()} directly instead."
+            ),
+        )
 
+    destination = waitlist_path()
     record = {
         "submitted_at": datetime.now(UTC).isoformat(),
         "source": source,
         **submission.model_dump(),
     }
-    with destination.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(record) + "\n")
+
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with destination.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record) + "\n")
+    except OSError:
+        return WaitlistPersistenceResult(
+            persisted=False,
+            storage_mode="demo-file-backed-jsonl-unavailable",
+            message=(
+                f"Local demo waitlist storage is unavailable. Email {contact_email()} directly instead."
+            ),
+        )
+
+    return WaitlistPersistenceResult(
+        persisted=True,
+        storage_mode="demo-file-backed-jsonl",
+        message="Stored locally for MVP demos only.",
+    )
 
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
     context = {
         "request": request,
-        "site": get_site_context(),
+        "site": build_site_context(),
         "brief": get_latest_brief(),
         "submitted": request.query_params.get("submitted"),
     }
@@ -121,7 +197,7 @@ async def index(request: Request) -> HTMLResponse:
 async def methodology(request: Request) -> HTMLResponse:
     context = {
         "request": request,
-        "site": get_site_context(),
+        "site": build_site_context(),
         "brief": get_latest_brief(),
     }
     return templates.TemplateResponse(request=request, name="methodology.html", context=context)
@@ -131,7 +207,7 @@ async def methodology(request: Request) -> HTMLResponse:
 async def brief_latest(request: Request) -> HTMLResponse:
     context = {
         "request": request,
-        "site": get_site_context(),
+        "site": build_site_context(),
         "brief": get_latest_brief(),
     }
     return templates.TemplateResponse(request=request, name="brief_latest.html", context=context)
@@ -147,15 +223,30 @@ async def api_brief_latest() -> BriefResponse:
     return BriefResponse.model_validate(build_brief_payload())
 
 
-@app.post("/api/waitlist", response_model=WaitlistReceipt, status_code=status.HTTP_202_ACCEPTED)
-async def api_waitlist(submission: WaitlistSubmission) -> WaitlistReceipt:
-    persist_waitlist_submission(submission, source="api")
-    return WaitlistReceipt(
-        status="accepted",
+@app.post(
+    "/api/waitlist",
+    response_model=WaitlistReceipt,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        status.HTTP_409_CONFLICT: {"description": "Launch email-only mode is active on this deployment."},
+        status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "Demo waitlist storage is temporarily unavailable."},
+    },
+)
+async def api_waitlist(submission: WaitlistSubmission) -> JSONResponse:
+    result = persist_waitlist_submission(submission, source="api")
+    receipt_status = "accepted" if result.persisted else "disabled"
+    response_status = status.HTTP_202_ACCEPTED if result.persisted else status.HTTP_409_CONFLICT
+    if not result.persisted and result.storage_mode != "launch-email-only":
+        receipt_status = "degraded"
+        response_status = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    payload = WaitlistReceipt(
+        status=receipt_status,
         brand=BRAND,
-        storage_mode="demo-file-backed-jsonl",
-        message="Stored locally for MVP demos only.",
+        storage_mode=result.storage_mode,
+        message=result.message,
     )
+    return JSONResponse(status_code=response_status, content=payload.model_dump())
 
 
 @app.post("/waitlist", status_code=status.HTTP_303_SEE_OTHER)
@@ -175,14 +266,21 @@ async def waitlist(
     except ValidationError:
         return RedirectResponse(url="/?submitted=error", status_code=status.HTTP_303_SEE_OTHER)
 
-    persist_waitlist_submission(submission, source="form")
-    return RedirectResponse(url="/?submitted=success", status_code=status.HTTP_303_SEE_OTHER)
+    result = persist_waitlist_submission(submission, source="form")
+    redirect_state = "success" if result.persisted else "disabled"
+    if not result.persisted and result.storage_mode != "launch-email-only":
+        redirect_state = "fallback"
+
+    return RedirectResponse(
+        url=f"/?submitted={redirect_state}",
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
 
 
 @app.get("/llms.txt", response_class=PlainTextResponse)
 async def llms_txt(request: Request) -> PlainTextResponse:
     content = templates.env.get_template("llms.txt.j2").render(
-        site=get_site_context(),
+        site=build_site_context(),
         brief=build_brief_payload(),
         request=request,
     )
