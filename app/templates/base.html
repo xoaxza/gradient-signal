@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Gradient Signal{% endblock %}</title>
+    <meta
+      name="description"
+      content="Gradient Signal tracks the AI changes that materially affect builders, not the hype cycle around them."
+    >
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="site-header">
+        <a class="brand" href="/">Gradient Signal</a>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Home</a>
+          <a href="/methodology" {% if request.url.path == '/methodology' %}aria-current="page"{% endif %}>Methodology</a>
+          <a href="/brief/latest" {% if request.url.path == '/brief/latest' %}aria-current="page"{% endif %}>Latest Brief</a>
+        </nav>
+      </header>
+
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+
+      <footer class="site-footer">
+        <p>Gradient Signal exists for builders who need evidence, tradeoffs, and source links more than hype.</p>
+        <p>
+          Machine-readable endpoints:
+          <a href="/healthz">/healthz</a>,
+          <a href="/api/brief/latest">/api/brief/latest</a>,
+          <a href="/llms.txt">/llms.txt</a>,
+          <a href="/openapi.json">/openapi.json</a>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
+

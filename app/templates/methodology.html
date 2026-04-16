@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Methodology | Gradient Signal{% endblock %}
+{% block content %}
+  <section class="page-header">
+    <div class="eyebrow">Methodology</div>
+    <h1>The filter is the product</h1>
+    <p>
+      Gradient Signal is intentionally anti-hype. We publish only when a change alters what builders can ship, what it
+      costs, how it behaves, or which controls it now requires.
+    </p>
+  </section>
+
+  <section class="story-grid">
+    {% for section in site.methodology_sections %}
+      <article class="story-card">
+        <h2>{{ section.title }}</h2>
+        <p>{{ section.body }}</p>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="grid-two">
+    <div class="card">
+      <div class="eyebrow">Primary-source-first</div>
+      <h2>How we source a brief</h2>
+      <ul class="plain-list">
+        <li>Vendor release notes, changelogs, docs, or policy statements come first.</li>
+        <li>We summarize the builder impact in terms of capability, cost, latency, reliability, safety, licensing, or compliance.</li>
+        <li>We avoid summaries that outrun the available evidence.</li>
+        <li>We keep source links visible so readers can verify the original claim and contract language.</li>
+      </ul>
+    </div>
+    <div class="card accent-card">
+      <div class="eyebrow">Ignore the hype</div>
+      <h2>What we ignore</h2>
+      <ul class="plain-list">
+        {% for item in site.what_we_ignore %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Current reference issue</div>
+    <h2>{{ brief.title }}</h2>
+    <p>{{ brief.summary }}</p>
+    <p>
+      The current brief is a concrete example of the filter in action. It stays grounded in operational shifts rather than
+      launch theater.
+    </p>
+    <a class="text-link" href="/brief/latest">Read the latest brief</a>
+  </section>
+{% endblock %}
+

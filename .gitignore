@@ -18,6 +18,7 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.pytest_cache/
 
 # JavaScript / Node
 node_modules/
@@ -27,3 +28,9 @@ coverage/
 
 # Logs
 *.log
+
+# Local agent/tooling state
+.codex
+
+# Demo data
+data/*.jsonl

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Latest Brief | Gradient Signal{% endblock %}
+{% block content %}
+  <section class="page-header">
+    <div class="eyebrow">Latest brief</div>
+    <h1>{{ brief.title }}</h1>
+    <p class="meta-line">Published {{ brief.published_on }}</p>
+    <p>{{ brief.summary }}</p>
+    <p class="note">{{ brief.editor_note }}</p>
+  </section>
+
+  <section class="brief-list">
+    {% for item in brief["items"] %}
+      <article class="brief-item">
+        <div class="story-meta">
+          <span>{{ item.category }}</span>
+          <span>{{ item.announced_on }}</span>
+        </div>
+        <h2>{{ loop.index }}. {{ item.headline }}</h2>
+        <p>{{ item.summary }}</p>
+        <p><strong>Why it matters:</strong> {{ item.why_it_matters }}</p>
+        <div class="source-list">
+          {% for source in item.sources %}
+            <a class="source-link" href="{{ source.url }}">{{ source.label }}</a>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="grid-two">
+    <div class="card accent-card">
+      <div class="eyebrow">Ignore the hype</div>
+      <h2>What we ignore</h2>
+      <ul class="plain-list">
+        {% for item in brief.what_we_ignore %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow">MVP waitlist</div>
+      <h2>{{ brief.cta.title }}</h2>
+      <p>{{ brief.cta.body }}</p>
+      <p class="note">{{ brief.cta.demo_note }}</p>
+      <a class="button" href="/#waitlist">Join from the homepage</a>
+    </div>
+  </section>
+{% endblock %}
+

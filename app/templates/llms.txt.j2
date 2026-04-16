@@ -1,0 +1,45 @@
+# Gradient Signal
+
+Gradient Signal is a signal-first AI engineering brief.
+Positioning: {{ site.positioning }}
+
+Audience:
+{% for audience in site.audience -%}
+- {{ audience }}
+{% endfor %}
+
+Editorial rules:
+{% for rule in site.editorial_rules -%}
+- {{ rule }}
+{% endfor %}
+
+Ignore the hype / What we ignore:
+{% for ignored in site.what_we_ignore -%}
+- {{ ignored }}
+{% endfor %}
+
+Human pages:
+- / : landing page with thesis, sample signals, and MVP waitlist
+- /methodology : editorial filter and sourcing approach
+- /brief/latest : current curated brief
+
+Machine endpoints:
+- /healthz : JSON health check with service brand
+- /api/brief/latest : JSON representation of the latest brief
+- /api/waitlist : POST JSON endpoint for demo-grade waitlist submissions
+- /llms.txt : this file
+- /openapi.json : FastAPI schema
+
+Current brief:
+- Title: {{ brief.title }}
+- Published: {{ brief.published_on }}
+- Item count: {{ brief["items"] | length }}
+
+Latest brief items:
+{% for item in brief["items"] -%}
+- {{ item.headline }} | {{ item.announced_on }} | {{ item.category }}
+{% endfor %}
+
+Demo note:
+- Waitlist submissions are stored in a local JSONL file for MVP demos only.
+

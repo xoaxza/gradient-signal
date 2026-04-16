@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Gradient Signal | What changed in AI for builders{% endblock %}
+{% block content %}
+  <section class="hero">
+    <div class="eyebrow">Signal-first AI engineering brief</div>
+    <h1>{{ site.positioning }}</h1>
+    <p class="hero-copy">
+      Gradient Signal is a weekly read for AI engineers, ML platform teams, and technical founders who need to know
+      which vendor moves change deployment reality. We filter for capability, cost, reliability, compliance, safety,
+      and access. We ignore noise.
+    </p>
+    <div class="hero-actions">
+      <a class="button" href="/brief/latest">Read the latest brief</a>
+      <a class="button button-secondary" href="/methodology">See the filter</a>
+    </div>
+  </section>
+
+  <section class="grid-two">
+    <div class="card" id="waitlist">
+      <h2>What Gradient Signal covers</h2>
+      <ul class="plain-list">
+        {% for rule in site.editorial_rules %}
+          <li>{{ rule }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Who it is for</h2>
+      <ul class="plain-list">
+        {% for audience in site.audience %}
+          <li>{{ audience }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section-heading">
+    <div>
+      <div class="eyebrow">Latest signals</div>
+      <h2>Six stories that change builder decisions this week</h2>
+    </div>
+    <a class="text-link" href="/brief/latest">Open the full brief</a>
+  </section>
+  <section class="story-grid">
+    {% for item in brief["items"] %}
+      <article class="story-card">
+        <div class="story-meta">
+          <span>{{ item.category }}</span>
+          <span>{{ item.announced_on }}</span>
+        </div>
+        <h3>{{ item.headline }}</h3>
+        <p>{{ item.summary }}</p>
+        <p class="why">Why builders should care: {{ item.why_it_matters }}</p>
+        <div class="source-list">
+          {% for source in item.sources %}
+            <a class="source-link" href="{{ source.url }}">{{ source.label }}</a>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="grid-two">
+    <div class="card accent-card">
+      <div class="eyebrow">Ignore the hype</div>
+      <h2>What we ignore</h2>
+      <ul class="plain-list">
+        {% for item in site.what_we_ignore %}
+          <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow">MVP waitlist</div>
+      <h2>{{ brief.cta.title }}</h2>
+      <p>{{ brief.cta.body }}</p>
+      <p class="note">{{ brief.cta.demo_note }}</p>
+      {% if submitted == "success" %}
+        <p class="form-status success">Thanks. Your submission was stored for the MVP demo.</p>
+      {% elif submitted == "error" %}
+        <p class="form-status error">Use a valid name and email address.</p>
+      {% endif %}
+      <form class="waitlist-form" action="/waitlist" method="post">
+        <label>
+          Name
+          <input type="text" name="name" required maxlength="80">
+        </label>
+        <label>
+          Work email
+          <input type="email" name="email" required maxlength="320">
+        </label>
+        <label>
+          Company
+          <input type="text" name="company" maxlength="120">
+        </label>
+        <label>
+          What are you tracking?
+          <textarea name="note" rows="4" maxlength="600"></textarea>
+        </label>
+        <button class="button" type="submit">Join the waitlist</button>
+      </form>
+    </div>
+  </section>
+{% endblock %}
